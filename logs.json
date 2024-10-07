@@ -1,1 +1,3 @@
-{"id": {"0": {"user": "my-user", "time": "2024-10-08 01:05:47.006700", "command": "cd users"}, "1": {"user": "my-user", "time": "2024-10-08 01:05:47.008700", "command": "ls"}, "2": {"user": "my-user", "time": "2024-10-08 01:05:49.226797", "command": "uname"}, "3": {"user": "my-user", "time": "2024-10-08 01:05:52.674403", "command": "uname -r"}, "4": {"user": "my-user", "time": "2024-10-08 01:05:55.291360", "command": "uname -v"}, "5": {"user": "my-user", "time": "2024-10-08 01:05:57.466419", "command": "uname -m"}, "6": {"user": "my-user", "time": "2024-10-08 01:06:00.517133", "command": "uname -s"}, "7": {"user": "my-user", "time": "2024-10-08 01:06:11.388127", "command": "uname m"}, "8": {"user": "my-user", "time": "2024-10-08 01:07:42.875742", "command": "exit"}}}
+{
+    "filesystem": "archive.tar"
+}

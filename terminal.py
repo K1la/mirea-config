@@ -34,7 +34,6 @@ class MyTerminal:
             if len(enter) > 0:
                 self.command_dispatcher(enter)
         self.output('stop polling...')
-        self.make_log()
 
     def command_dispatcher(self, command):
         self.log['id'][self.cnt] = {'user': self.us_name, 'time': str(datetime.now()), 'command': command}
