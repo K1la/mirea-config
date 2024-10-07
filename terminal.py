@@ -47,10 +47,10 @@ class MyTerminal:
             self.cd(params[1:])
         elif params[0] == 'ls':
             self.ls(params[1:])
-        # elif params[0] == 'mv':
-        #     self.mv(params[1:])
-        # elif params[0] == 'tree':
-        #     self.tree(params[1:])
+        elif params[0] == 'mv':
+            self.mv(params[1:])
+        elif params[0] == 'tree':
+            self.tree(params[1:])
         # elif params[0] == 'uname':
         #     self.uname(params[1:])
         else:
@@ -178,3 +178,85 @@ class MyTerminal:
                         return self.output(f"cd: {prmtrs[0]}: Not a directory")
                     self.cur_d = new_directory
                     return f"change to " + new_directory
+
+    def mv(self, prmtrs):
+        if len(prmtrs) != 2:
+            return self.output("mv: missing file operand")
+        
+        source_path = self.find_path(prmtrs[0])
+        if source_path is None:
+            return self.output(f"mv: can't stat '{prmtrs[0]}': No such file or directory")
+        
+        destination_path = self.find_path(prmtrs[1])
+        if destination_path is None:
+            destination_path = prmtrs[1]
+            if destination_path[-1] == '/':
+                destination_path = destination_path[:-1]
+        
+        #если путь - это директория
+        with tarfile.open(self.fs, 'r') as tar:
+            for member in tar.getmembers():
+                if member.name == destination_path and member.isdir():
+                    destination_path = f"{destination_path}/{source_path.split('/')[-1]}"
+                    break
+        
+        #обновляем переменные удаленных файлов
+        self.deleted.add(source_path)
+
+        #переименование/ перемещаем файл
+        with tarfile.open(self.fs, 'r') as tar:
+            new_members = []
+            for member in tar.getmembers():
+                if member.name != source_path:
+                    new_members.append(member)
+                else:
+                    member.name = destination_path
+                    new_members.append(member)
+
+            with tarfile.open(self.fs, 'w') as new_tar:
+                for member in new_members:
+                    new_tar.addfile(member)
+        
+        self.output(f"'{prmtrs[0]}' -> '{prmtrs[1]}'")
+
+    def tree(self, prmtrs):
+        #если ничего не указано - это текущая директория
+        start_path = self.cur_d
+        if len(prmtrs) == 1:
+            start_path = self.find_path(prmtrs[0])
+            if start_path is None:
+                return self.output(f"tree: '{prmtrs[0]}': No such file or directory")
+        
+        def generate_tree(directory, prefix=""):
+            tree_str=""
+            entries = []
+
+            with tarfile.open(self.fs, 'r') as tar:
+                for member in tar.getmembers():
+                    #файл/папка не удалена
+                    if member.name.startswith(directory) and member.name != directory and member.name not in self.deleted:
+                        #отрезаем текущий путь, чтобы получить имя
+                        rel_path = member.name[len(directory):].lstrip('/')
+                        if '/' not in rel_path or rel_path.endswith('/'):
+                            entries.append((rel_path, member))
+
+            entries = sorted(entries, key=lambda x: x[0])
+
+            for i, (entry_name, member) in enumerate(entries):
+                connector = "|__ " if i == len(entries) - 1 else "|-- "
+                tree_str += f"{prefix}{connector}{entry_name}\n"
+                
+                if member.isdir():
+                    sub_dir = f"{directory}/{entry_name}".rstrip('/')
+                    new_prefix = f"{prefix}{'    ' if i == len(entries)-1 else '|   '}"
+                    tree_str += generate_tree(sub_dir, new_prefix)
+            return tree_str
+        
+        #если директория пустая
+        with tarfile.open(self.fs, 'r') as tar:
+            paths = [member.name for member in tar.getmembers() if member.name.startswith(start_path) and member.name not in self.deleted]
+            if len(paths) == 0:
+                return self.output(f"tree: {start_path}: [empty directory]")
+        
+        tree_structure = generate_tree(start_path)
+        self.output(tree_structure)
