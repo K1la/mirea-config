@@ -51,8 +51,8 @@ class MyTerminal:
             self.mv(params[1:])
         elif params[0] == 'tree':
             self.tree(params[1:])
-        # elif params[0] == 'uname':
-        #     self.uname(params[1:])
+        elif params[0] == 'uname':
+            self.uname(params[1:])
         else:
             self.output("Command not found")
 
@@ -260,3 +260,29 @@ class MyTerminal:
         
         tree_structure = generate_tree(start_path)
         self.output(tree_structure)
+    
+    def uname(self, prmtrs):
+        sys_name = "CLI_Terminal"
+
+        version = "1.0"
+        release = "CLI_Treminal by Salakhaddin 1.0"
+        machine = "x86_64"
+
+        if not prmtrs:
+            return self.output(sys_name)
+
+        output = []
+        for param in prmtrs:
+            if param == "-s":
+                output.append(sys_name)
+            elif param == "-r":
+                output.append(release)
+            elif param == "-v":
+                output.append(version)
+            elif param == "-m":
+                output.append(machine)
+            else:
+                return self.output(f"uname: invalid option -- '{param}'")
+        
+        return self.output(" ".join(output))
+            
