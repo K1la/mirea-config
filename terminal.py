@@ -44,6 +44,8 @@ class MyTerminal:
             self.tree(params[1:])
         elif params[0] == 'uname':
             self.uname(params[1:])
+        elif params[0] == 'uname':
+            self.uname(params[1:])
         else:
             return self.output("Command not found")
 
