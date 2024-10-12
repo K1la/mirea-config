@@ -4,23 +4,17 @@ from datetime import datetime
 
 
 class MyTerminal:
-    def __init__(self, user_name, file_system, log_file, start_script):
+    def __init__(self, user_name, start_script):
         self.us_name = user_name
-        self.fs = file_system
-        self.log_f = log_file
         self.st_script = start_script
+
+        with open('logs.json', 'r') as config_path:
+            config = json.load(config_path)
+        self.fs = config['filesystem']
 
         self.cur_d = ''
         self.polling = False
-        self.log = dict()
-        self.log['id'] = dict()
-        self.cnt = 0
-
         self.deleted = set()
-
-    def make_log(self):
-        with open(self.log_f, 'w') as f:
-            json.dump(self.log, f)
 
     def output(self, message, end='\n'):
         print(message)
@@ -34,11 +28,8 @@ class MyTerminal:
             if len(enter) > 0:
                 self.command_dispatcher(enter)
         self.output('stop polling...')
-        self.make_log()
 
     def command_dispatcher(self, command):
-        self.log['id'][self.cnt] = {'user': self.us_name, 'time': str(datetime.now()), 'command': command}
-        self.cnt += 1
 
         params = command.split()
         if params[0] == 'exit':
@@ -51,10 +42,10 @@ class MyTerminal:
             self.mv(params[1:])
         elif params[0] == 'tree':
             self.tree(params[1:])
-        # elif params[0] == 'uname':
-        #     self.uname(params[1:])
+        elif params[0] == 'uname':
+            self.uname(params[1:])
         else:
-            self.output("Command not found")
+            return self.output("Command not found")
 
     def exec_start_script(self):
         try:
@@ -179,45 +170,105 @@ class MyTerminal:
                     self.cur_d = new_directory
                     return f"change to " + new_directory
 
+    # def mv(self, prmtrs):
+    #     if len(prmtrs) != 2:
+    #         return self.output("mv: missing file operand")
+        
+    #     source_path = self.find_path(prmtrs[0])
+    #     if source_path is None:
+    #         return self.output(f"mv: can't stat '{prmtrs[0]}': No such file or directory")
+        
+    #     destination_path = self.find_path(prmtrs[1]) 
+    #     self.output(f'des_path: {destination_path}')
+    #     if destination_path is None:
+    #         destination_path = prmtrs[1] if prmtrs[1].startswith('/') else f'{self.cur_d}/{prmtrs[1]}'
+    #         # self.output(f'des_path: {destination_path}')
+    #         # if destination_path[-1] == '/':
+    #         #     destination_path = destination_path[:-1]
+    #         #     self.output(f'des_path[-1]/[:-1]: {destination_path}')
+        
+    #     # Проверка на перемещение в директорию
+    #     with tarfile.open(self.fs, 'r') as tar:
+    #         members = tar.getmembers()
+    #         is_dest_dir = any(m.name == destination_path and m.isdir() for m in members)
+
+    #         # for member in tar.getmembers():
+    #         #     if member.name == destination_path and member.isdir():
+    #         #         destination_path = f"{destination_path}/{source_path.split('/')[-1]}"
+    #         #         break
+        
+    #     if is_dest_dir:
+    #         source_name = source_path.split('/')[-1]
+    #         destination_path = f"{destination_path}/{source_name}".rstrip('/')
+
+    #      # Открываем архив для записи (перемещение с удалением оригинала)
+    #     with tarfile.open(self.fs, 'r') as tar:
+    #         members = tar.getmembers()
+    #         src_member = None
+
+    #         # Найдем исходный файл
+    #         for member in members:
+    #             if member.name == source_path:
+    #                 src_member = member
+    #                 break
+
+    #         if src_member is None:
+    #             return self.output(f"mv: can't stat '{prmtrs[0]}': No such file or directory")
+
+
+    #     #обновляем переменные удаленных файлов
+    #     self.deleted.add(source_path)
+
+    #     new_members = []
+    #     with tarfile.open(self.fs, 'a') as tar_add:
+    #         for member in tar.getmembers():
+    #             if member.name == source_path:
+    #                 member.name = destination_path  # Изменяем путь
+    #             new_members.append(member)
+    #         tar_add.addfile(member)
+        
+    #     return self.output(f"'{prmtrs[0]}' -> '{prmtrs[1]}'")
+
+
     def mv(self, prmtrs):
         if len(prmtrs) != 2:
-            return self.output("mv: missing file operand")
-        
-        source_path = self.find_path(prmtrs[0])
-        if source_path is None:
+            return self.output("mv: missing file operand or target")
+
+        src_path = self.find_path(prmtrs[0])  # Исходный файл или директория
+        dest_path = self.find_path(prmtrs[1])  # Целевая директория или имя
+
+        if src_path is None:
             return self.output(f"mv: can't stat '{prmtrs[0]}': No such file or directory")
-        
-        destination_path = self.find_path(prmtrs[1])
-        if destination_path is None:
-            destination_path = prmtrs[1]
-            if destination_path[-1] == '/':
-                destination_path = destination_path[:-1]
-        
-        #если путь - это директория
-        with tarfile.open(self.fs, 'r') as tar:
-            for member in tar.getmembers():
-                if member.name == destination_path and member.isdir():
-                    destination_path = f"{destination_path}/{source_path.split('/')[-1]}"
-                    break
-        
-        #обновляем переменные удаленных файлов
-        self.deleted.add(source_path)
 
-        #переименование/ перемещаем файл
         with tarfile.open(self.fs, 'r') as tar:
-            new_members = []
-            for member in tar.getmembers():
-                if member.name != source_path:
-                    new_members.append(member)
+            files_in_tar = [member.name for member in tar.getmembers()]
+            
+            # Если целевой путь — это существующий файл, то перемещаем внутрь
+            if dest_path is None:
+                # Определяем целевой путь
+                if prmtrs[1].endswith('/'):
+                    dest_path = prmtrs[1].rstrip('/')
                 else:
-                    member.name = destination_path
-                    new_members.append(member)
+                    dest_path = prmtrs[1]
+            else:
+                # Если dest_path — существующая директория, перемещаем внутрь нее
+                if dest_path in files_in_tar and tar.getmember(dest_path).isdir():
+                    src_name = src_path.split('/')[-1]  # Имя исходного файла
+                    dest_path = f"{dest_path}/{src_name}"  # Перемещение в целевую директорию
 
-            with tarfile.open(self.fs, 'w') as new_tar:
-                for member in new_members:
-                    new_tar.addfile(member)
+            if dest_path in files_in_tar:
+                return self.output(f"mv: cannot move '{prmtrs[0]}' to '{prmtrs[1]}': File or directory exists")
+
+            self.deleted.add(src_path)  # Помечаем исходный файл как удаленный
+
+            for member in tar.getmembers():
+                if member.name == src_path:
+                    with tarfile.open(self.fs, 'a') as tar_add:
+                        member.name = dest_path  # Изменяем путь
+                        tar_add.addfile(member)
         
-        self.output(f"'{prmtrs[0]}' -> '{prmtrs[1]}'")
+        return self.output(f"'{src_path}' -> '{dest_path}'")
+
 
     def tree(self, prmtrs):
         #если ничего не указано - это текущая директория
@@ -260,3 +311,28 @@ class MyTerminal:
         
         tree_structure = generate_tree(start_path)
         self.output(tree_structure)
+
+    def uname(self, prmtrs):
+        sys_name = "CLI_UNIX"
+        version = "1.0"
+        release = "CLI_UNIX by Salakhaddin 1.0.0"
+        machine = "x86_64"
+
+        if not prmtrs:
+            return self.output(sys_name)
+
+        # Опции команды uname:
+        output = []
+        for param in prmtrs:
+            if param == "-s":  # Вывод имени системы
+                output.append(sys_name)
+            elif param == "-r":  # Вывод релиза/версии ядра
+                output.append(release)
+            elif param == "-v":  # Вывод версии ОС
+                output.append(version)
+            elif param == "-m":  # Вывод архитектуры
+                output.append(machine)
+            else:
+                return self.output(f"uname: invalid option - '{param}'")
+
+        return self.output(" ".join(output))

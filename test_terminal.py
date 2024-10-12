@@ -1,16 +1,12 @@
 import pytest
 from terminal import MyTerminal
-import tarfile
 
 
 @pytest.fixture
 def terminal():
     user_name = 'test_user'
-    fs_path = 'archive.tar'
-    tarfile.open(fs_path)
-    log_file = 'logs.json'
     start_script = 'start.txt'
-    t = MyTerminal(user_name, fs_path, log_file, start_script)
+    t = MyTerminal(user_name, start_script)
     return t
 
 

@@ -17,7 +17,7 @@ pip install coverage
 Запуск в режиме **CLI**:
 
 ```shell
-py main.py "my-user" "archive.tar" "logs.json" "start.txt"
+py main.py "my-user" "start.txt"
 ```
 
 # 4. Тестирование
@@ -26,6 +26,7 @@ py main.py "my-user" "archive.tar" "logs.json" "start.txt"
 
 ```shell
 pytest -v
+python -m unittest tests.py
 ```
 
 Для генерации отчета о покрытии тестами необходимо выполнить команду:
