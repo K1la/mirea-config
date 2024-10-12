@@ -6,7 +6,7 @@ class TestTerminalCommands(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.terminal = MyTerminal(user_name="test_user", start_script='start.txt')
-        cls.terminal.fs = 'archiveTest.tar'
+        cls.terminal.fs = 'archiveForTest.tar'
 
     def test_cd_valid_directory(self):
         """Проверка перехода в допустимый каталог"""
@@ -35,6 +35,19 @@ class TestTerminalCommands(unittest.TestCase):
         self.assertIn("folder", result)
         self.assertIn("more_textes.txt", result)
 
+    def test_tree_current_directory(self):
+        """Проверка команды tree для текущего каталога"""
+        self.terminal.cur_d = 'desktop/folder'
+        result = self.terminal.tree([])
+        self.assertIn("|-- bin", result)
+        self.assertIn("|-- more_textes.txt", result)
+        self.assertIn("|__ world", result)
+
+    def test_tree_invalid_directory(self):
+        """Проверка команды tree для несуществующего каталога"""
+        result = self.terminal.tree(['invalid_dir'])
+        self.assertIn("tree: 'invalid_dir': No such file or directory", result)
+
     def test_mv_valid(self):
         """Проверка перемещения файла"""
         self.terminal.cur_d = 'desktop'
@@ -45,18 +58,6 @@ class TestTerminalCommands(unittest.TestCase):
         """Проверка команды mv с недопустимым исходным файлом"""
         result = self.terminal.mv(['invalid_file', 'users/new_file.txt'])
         self.assertIn("mv: can't stat 'invalid_file': No such file or directory", result)
-
-    def test_tree_current_directory(self):
-        """Проверка команды tree для текущего каталога"""
-        self.terminal.cur_d = 'desktop'
-        result = self.terminal.tree([])
-        self.assertIn("|-- folder.txt", result)
-        self.assertIn("|__ more_textes.txt", result)
-
-    def test_tree_invalid_directory(self):
-        """Проверка команды tree для несуществующего каталога"""
-        result = self.terminal.tree(['invalid_dir'])
-        self.assertIn("tree: 'invalid_dir': No such file or directory", result)
 
     def test_uname_default(self):
         """Проверка команды uname без аргументов"""

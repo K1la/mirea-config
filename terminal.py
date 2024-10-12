@@ -172,66 +172,6 @@ class MyTerminal:
                     self.cur_d = new_directory
                     return f"change to " + new_directory
 
-    # def mv(self, prmtrs):
-    #     if len(prmtrs) != 2:
-    #         return self.output("mv: missing file operand")
-        
-    #     source_path = self.find_path(prmtrs[0])
-    #     if source_path is None:
-    #         return self.output(f"mv: can't stat '{prmtrs[0]}': No such file or directory")
-        
-    #     destination_path = self.find_path(prmtrs[1]) 
-    #     self.output(f'des_path: {destination_path}')
-    #     if destination_path is None:
-    #         destination_path = prmtrs[1] if prmtrs[1].startswith('/') else f'{self.cur_d}/{prmtrs[1]}'
-    #         # self.output(f'des_path: {destination_path}')
-    #         # if destination_path[-1] == '/':
-    #         #     destination_path = destination_path[:-1]
-    #         #     self.output(f'des_path[-1]/[:-1]: {destination_path}')
-        
-    #     # Проверка на перемещение в директорию
-    #     with tarfile.open(self.fs, 'r') as tar:
-    #         members = tar.getmembers()
-    #         is_dest_dir = any(m.name == destination_path and m.isdir() for m in members)
-
-    #         # for member in tar.getmembers():
-    #         #     if member.name == destination_path and member.isdir():
-    #         #         destination_path = f"{destination_path}/{source_path.split('/')[-1]}"
-    #         #         break
-        
-    #     if is_dest_dir:
-    #         source_name = source_path.split('/')[-1]
-    #         destination_path = f"{destination_path}/{source_name}".rstrip('/')
-
-    #      # Открываем архив для записи (перемещение с удалением оригинала)
-    #     with tarfile.open(self.fs, 'r') as tar:
-    #         members = tar.getmembers()
-    #         src_member = None
-
-    #         # Найдем исходный файл
-    #         for member in members:
-    #             if member.name == source_path:
-    #                 src_member = member
-    #                 break
-
-    #         if src_member is None:
-    #             return self.output(f"mv: can't stat '{prmtrs[0]}': No such file or directory")
-
-
-    #     #обновляем переменные удаленных файлов
-    #     self.deleted.add(source_path)
-
-    #     new_members = []
-    #     with tarfile.open(self.fs, 'a') as tar_add:
-    #         for member in tar.getmembers():
-    #             if member.name == source_path:
-    #                 member.name = destination_path  # Изменяем путь
-    #             new_members.append(member)
-    #         tar_add.addfile(member)
-        
-    #     return self.output(f"'{prmtrs[0]}' -> '{prmtrs[1]}'")
-
-
     def mv(self, prmtrs):
         if len(prmtrs) != 2:
             return self.output("mv: missing file operand or target")
@@ -313,6 +253,8 @@ class MyTerminal:
         
         tree_structure = generate_tree(start_path)
         self.output(tree_structure)
+
+        return tree_structure
 
     def uname(self, prmtrs):
         sys_name = "CLI_UNIX"

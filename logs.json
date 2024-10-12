@@ -1,7 +1,3 @@
 {
-<<<<<<< HEAD
-    "filesystem": "archiveForTest.tar"
-=======
     "filesystem": "archive.tar"
->>>>>>> e5808f8a530c925c25387f093470eb069653d923
 }

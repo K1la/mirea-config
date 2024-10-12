@@ -1,5 +1,6 @@
 # ДЗ 1 / Вариант - 24
-**Сперва, нужно переименовать архив .tar на archive.tar**
+**ОБЯЗАТЕЛЬНО, перед каждым запуском нужно переименовать архив RenameME.tar на archive.tar**
+**Т.к архив меняется из-за воздействия команд**
 
 # 1. Виртуальное окружение
 
@@ -11,8 +12,7 @@ venv/Scripts/activate
 # 2. Установка библиотек
 
 ```shell
-pip install pytest
-pip install coverage
+pip install unitest
 ```
 
 # 3. Запуск программы
@@ -25,21 +25,10 @@ py main.py "my-user" "start.txt"
 
 # 4. Тестирование
 
+# ОБЯЗАТЕЛЬНО перед каждым тестом, копировать архив RenameMe.tar и переименовать его в 'archiveForTest.tar'
+
 Для запуска тестирования необходимо запустить следующий скрипт:
 
 ```shell
-pytest -v
 python -m unittest tests.py
-```
-
-Для генерации отчета о покрытии тестами необходимо выполнить команду:
-
-```shell
-coverage run --branch -m pytest test_terminal.py
-```
-
-Просмотр результатов покрытия:
-
-```shell
-coverage report
 ```
